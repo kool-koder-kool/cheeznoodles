@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cheez Noodlez Search</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script async src="https://cse.google.com/cse.js?cx=1163df944831d49da"></script>
+    <style>
+        /* Custom styles for a cheesy aesthetic */
+        .cheez-gradient {
+            background: linear-gradient(135deg, #fcd34d 0%, #ea580c 100%); /* Yellow to Orange */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+            /* Added shadow for depth */
+            text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.7), 4px 4px 0px rgba(0, 0, 0, 0.1);
+        }
+        .main-content {
+            /* Ensure the main area takes up enough height for centering */
+            min-height: 100vh; 
+        }
+        
+        /* Modal Backdrop Blur Effect */
+        .modal-open-blur {
+            filter: blur(5px);
+            transition: filter 0.3s;
+        }
+
+        /* --- Cheezy Results Box Styling (formerly AI Overview) --- */
+        #ai-overview-box {
+            background-color: #fcd34d; /* Light Cheddar Yellow */
+            border: 2px solid #ea580c; /* Noodle Orange border */
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem; /* Space between overview and results */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        #ai-overview-box h4 {
+            color: #ea580c;
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 800; /* font-extrabold */
+            margin-bottom: 0.75rem;
+            border-bottom: 2px dashed rgba(234, 88, 12, 0.3);
+            padding-bottom: 0.5rem;
+        }
+
+
+        /* Custom Styles for Google Custom Search Results (GCS) */
+        .gsc-control-cse {
+            /* CHANGED: Background to cheddar-main for maximum cheese effect */
+            background-color: #f9a825 !important; 
+            padding: 1.5rem !important;
+            border-radius: 1.5rem !important; /* More rounded */
+            max-width: 100%;
+            /* CHANGED: Border to noodle-orange for better contrast */
+            border: 3px solid #ea580c !important; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+        /* Result Links/Titles */
+        .gsce-search a.gsce-title {
+            color: #ea580c !important; /* Noodle Orange - still visible against yellow */
+            font-weight: 600 !important;
+        }
+        .gsce-search a.gsce-title:hover {
+            color: #fff !important; /* Changed hover to white for better contrast */
+        }
+        /* Remove default white background and borders from results */
+        .gsc-results {
+            background-color: transparent !important;
+            border: none !important;
+        }
+        .gsc-webResult, .gsc-result {
+            padding-bottom: 0.5rem !important;
+            /* CHANGED: Separator line to white for contrast against the dark yellow background */
+            border-bottom: 2px solid #ffffff !important; 
+            margin-bottom: 1rem !important;
+            background-color: transparent !important;
+        }
+        /* GCS Input styling to match the theme better */
+        .gsc-input {
+            border-radius: 9999px !important;
+            padding: 1rem 1.5rem !important;
+        }
+        .gsc-search-button {
+            display: none !important; /* Hide default GCS search button */
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'cheddar-light': '#fff3c4',
+                        'cheddar-main': '#f9a825',
+                        'noodle-orange': '#ea580c',
+                    }
+                }
+            }
+        }
+
+        // Global state for modals
+        let isModalOpen = false;
+
+        let mainContent = null; 
+
+        function toggleModal(id, show) {
+            const modal = document.getElementById(id);
+            if (modal) {
+                if (show) {
+                    modal.classList.remove('hidden');
+                    // Apply blur to main content, with null check
+                    if (mainContent) {
+                        mainContent.classList.add('modal-open-blur');
+                    }
+                    isModalOpen = true;
+                } else {
+                    modal.classList.add('hidden');
+                    // Remove blur from main content, with null check
+                    if (mainContent) {
+                        mainContent.classList.remove('modal-open-blur');
+                    }
+                    isModalOpen = false;
+                }
+            }
+        }
+
+        function handleAboutCheez() {
+            toggleModal('about-modal', true);
+        }
+
+        // Function to generate (simulate) the Cheezy Results content
+        function generateAiOverview(query) {
+            // Placeholder function to simulate AI generation
+            const summaries = {
+                'best mac and cheese recipes': "According to an advanced culinary model, the 'Best Mac and Cheese' requires sharp cheddar, a creamy roux base, and a touch of secret spice. Key ingredients often include heavy cream, Gruyère cheese for stretch, and a Panko breadcrumb topping for crunch. Many sources suggest baking the dish for a golden-brown crust and maximized flavor meld.",
+                'fun facts about pasta': "Did you know that there are over 600 distinct shapes of pasta recognized worldwide? It's not just spaghetti and macaroni! The word 'pasta' itself means 'paste' in Italian, referring to the dough made from flour and water or eggs. Ancient civilizations, including the Greeks and Romans, had forms of pasta dishes long before modern Italy standardized the cuisine.",
+                'history of cheddar cheese': "Cheddar cheese originated in the village of Cheddar in Somerset, England, during the 12th century. It is a hard, slightly crumbly, and sometimes sharp-tasting cheese. The characteristic 'cheddaring' process—where the curds are cut, piled, and turned to drain whey—is what gives it its unique texture. The color (often orange) is typically achieved by adding Annatto extract.",
+                'noodle art inspiration': "Noodle art ranges from intricate sculptures made of dry pasta to detailed portraits using colored cooked noodles. Artists are inspired by the pasta's unique shapes, curves, and textures to create 3D forms, mosaics, and even wearable designs. Popular subjects include landscapes, abstract patterns, and, naturally, food-themed installations.",
+                'cheesy jokes for the day': "Why did the cheese maker break up with his girlfriend? Because she kept saying he was too *goud-a* for her! The best time to eat cheese is after a long, hard day of work, as a reward for your grate efforts. These jokes are guaranteed to make you groan with pleasure!",
+                // Updated default text to reflect "Cheezy Results"
+                'default': "Based on your query, Cheez Noodlez AI (CNAI) has generated Cheezy Results. This summary covers the key noodle-related facts and the cheesiest details found across the web."
+            };
+
+            return summaries[query] || summaries['default'];
+        }
+
+        // Modified handleSearch function to include Cheezy Results
+        function handleSearch() {
+            const searchInput = document.querySelector('.gsc-input');
+            
+            // Safely access searchInput.value and convert to lowercase. 
+            const query = String((searchInput && searchInput.value) || '').toLowerCase();
+            
+            const aiBox = document.getElementById('ai-overview-box');
+
+            if (!aiBox) return; // safety check
+
+            // 1. Show Loading State
+            aiBox.classList.remove('hidden');
+            aiBox.innerHTML = `
+                <h4 class="text-noodle-orange font-extrabold text-xl mb-3 border-b-2 border-dashed border-noodle-orange/30 pb-2">Cheezy Results: Generating Cheesy Insights...</h4>
+                <div class="flex items-center space-x-2">
+                    <!-- Spinning Noodle Icon -->
+                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-noodle-orange"></div>
+                    <p class="text-gray-700">Stirring the roux for your perfect summary...</p>
+                </div>
+            `;
+
+            // 2. Simulate Network Delay (1.5 seconds)
+            setTimeout(() => {
+                const generatedText = generateAiOverview(query);
+
+                // 3. Populate and Show Overview
+                aiBox.innerHTML = `
+                    <h4 class="text-noodle-orange font-extrabold text-xl mb-3 border-b-2 border-dashed border-noodle-orange/30 pb-2">Cheezy Results</h4>
+                    <p class="text-gray-800">${generatedText}</p>
+                `;
+
+                // 4. Trigger GCS Search
+                // This simulates the original button behavior by clicking the hidden GCS button.
+                const searchButton = document.querySelector('.gsc-search-button-v2');
+                if (searchButton) {
+                    searchButton.click();
+                } else {
+                     // Fallback message, though GCS should load
+                     console.log('Search initiated! Results below.');
+                }
+
+            }, 1500); // 1.5 second delay
+        }
+
+        function handleFeelingNoodly() {
+            const noodlyQueries = [
+                'best mac and cheese recipes',
+                'fun facts about pasta',
+                'history of cheddar cheese',
+                'noodle art inspiration',
+                'cheesy jokes for the day'
+            ];
+            const query = noodlyQueries[Math.floor(Math.random() * noodlyQueries.length)];
+
+            // 1. Set the query in the GCS input field
+            const searchInput = document.querySelector('.gsc-input');
+            if (searchInput) {
+                searchInput.value = query;
+            }
+            
+            // 2. Execute the search (which calls the AI overview first)
+            handleSearch();
+        }
+
+        // Close modal on Escape key press
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isModalOpen) {
+                toggleModal('about-modal', false);
+            }
+        });
+
+        // Close modal when clicking outside
+        document.addEventListener('click', (e) => {
+            if (isModalOpen && e.target.classList.contains('modal-backdrop')) {
+                toggleModal('about-modal', false);
+            }
+        });
+
+        // Ensure functions are attached to elements after the DOM loads
+        window.onload = function() {
+            // Initialize mainContent when the DOM is guaranteed to be ready
+            mainContent = document.getElementById('main-content-wrapper'); 
+
+            // Attach listeners to the two search buttons
+            document.getElementById('search-button').addEventListener('click', handleSearch);
+            document.getElementById('noodly-button').addEventListener('click', handleFeelingNoodly);
+
+            // Function to setup listener on the dynamically loaded GCS input
+            const setupSearchListener = () => {
+                const searchInput = document.querySelector('.gsc-input');
+                if (searchInput) {
+                    // 1. Bind 'Enter' key to trigger the custom search logic (Cheezy Results)
+                    searchInput.addEventListener('keyup', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault(); 
+                            handleSearch();
+                        }
+                    });
+                }
+            };
+
+            // Use a timeout to wait for the asynchronous GCS script to load and inject its input field
+            // Note: The original listener for 'Enter' key press is commented out in the provided code,
+            // but for a fully functional search page, it's best to re-implement it here.
+            setTimeout(setupSearchListener, 500); 
+
+            // Attach main navigation listener
+            document.getElementById('about-cheez-link').addEventListener('click', (e) => { e.preventDefault(); handleAboutCheez(); });
+            
+            // Removed listeners related to the footer/language modal
+        }
+    </script>
+</head>
+<body class="bg-cheddar-light flex flex-col font-sans text-gray-800 min-h-screen">
+
+    <!-- Top Navigation and Main Content Wrapper (for Blur Effect) -->
+    <div id="main-content-wrapper" class="flex-grow">
+        <!-- Top Right Navigation Bar -->
+        <nav class="absolute top-0 right-0 p-4 text-sm text-noodle-orange font-semibold">
+            <a href="#" id="about-cheez-link" class="hover:underline mx-2 transition-colors duration-150">About Cheez</a>
+        </nav>
+
+        <!-- Main Content Area: Centered Logo and Search Box -->
+        <div class="main-content flex flex-col justify-center items-center p-4 pt-16">
+            
+            <!-- Search Engine Logo/Title and Noodle Icon -->
+            <div class="text-7xl md:text-8xl lg:text-9xl mb-8 flex items-center">
+                
+                <!-- SVG Macaroni Noodle Icon (Curved Elbow Shape) -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 sm:w-16 sm:h-16 mr-3 transform -rotate-12 drop-shadow-md" viewBox="0 0 100 100">
+                    
+                    <!-- Orange Outline Layer (Thick, curved path) -->
+                    <path 
+                        d="M 25 75 Q 50 25 75 75" 
+                        fill="none" 
+                        stroke="#ea580c" 
+                        stroke-width="35" 
+                        stroke-linecap="round" 
+                        stroke-linejoin="round"
+                    />
+                    
+                    <!-- Yellow Cheese Layer (Slightly Thinner, on top of outline) -->
+                    <path 
+                        d="M 25 75 Q 50 25 75 75" 
+                        fill="none" 
+                        stroke="#fcd34d" 
+                        stroke-width="25" 
+                        stroke-linecap="round" 
+                        stroke-linejoin="round"
+                    />
+
+                </svg>
+
+                <span class="cheez-gradient">Cheez</span>
+                <span class="text-noodle-orange font-black">Noodlez</span>
+            </div>
+
+            <!-- Google Custom Search Element -->
+            <div class="w-full max-w-2xl mt-4">
+                
+                <!-- Cheezy Results Box -->
+                <div id="ai-overview-box" class="hidden">
+                    <!-- Content injected by JavaScript -->
+                </div>
+                
+                <div class="gcse-search"></div>
+            </div>
+
+            <!-- Functional Buttons (KEPT) -->
+            <div class="flex space-x-4 mt-6">
+                <button id="search-button" class="bg-white hover:bg-cheddar-main hover:text-white transition-all duration-200 text-gray-800 py-2 px-4 rounded-lg shadow-md border border-noodle-orange/50 text-sm font-semibold transform hover:scale-105">
+                    Cheez Noodlez Search
+                </button>
+                <button id="noodly-button" class="bg-white hover:bg-cheddar-main hover:text-white transition-all duration-200 text-gray-800 py-2 px-4 rounded-lg shadow-md border border-noodle-orange/50 text-sm font-semibold transform hover:scale-105">
+                    I'm Feeling Noodly
+                </button>
+            </div>
+
+        </div>
+    </div> <!-- End of main-content-wrapper -->
+
+    <!-- Removed Footer Content -->
+
+
+    <!-- About Cheez Modal (KEPT) -->
+    <div id="about-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 modal-backdrop transition-opacity duration-300" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-2xl overflow-hidden transform transition-all sm:max-w-lg sm:w-full border-4 border-cheddar-main">
+                <div class="bg-cheddar-light px-6 py-5 sm:p-6">
+                    <div class="text-center">
+                        <h3 class="text-2xl font-black text-noodle-orange mb-2" id="modal-title">About Cheez Noodlez</h3>
+                        <div class="mt-2 text-sm text-gray-700">
+                            <p class="mb-3">
+                                Welcome to the ultimate resource for all things delicious and cheesy! Cheez Noodlez is dedicated to serving up the freshest search results and the tastiest web experience.
+                            </p>
+                            <p class="mb-3">
+                                We believe searching should be as satisfying as a big bowl of comfort food. While we're mostly a fun layout project, we're powered by a real search engine to satisfy your actual cravings for information.
+                            </p>
+                            <p class="text-noodle-orange font-semibold">
+                                Keep stirring the pot and keep searching!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" onclick="toggleModal('about-modal', false)" class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-noodle-orange text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-noodle-orange sm:ml-3 sm:w-auto sm:text-sm transition-colors duration-150">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Language Settings Modal (REMOVED) -->
+    <!-- Removed HTML block for language-modal as the footer link was removed. -->
+
+</body>
+</html>
